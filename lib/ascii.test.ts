@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canvasToAscii, getLuminance, pixelToChar, ASCII_CHARS } from './ascii';
+import { canvasToAscii, getLuminance, pixelToChar, ASCII_CHARS, imageToAscii } from './ascii';
 
 describe('getLuminance', () => {
   it('returns 0 for black', () => {
@@ -96,5 +96,37 @@ describe('canvasToAscii', () => {
     // Fully transparent should appear as white (lightest char)
     expect(lines[0]).toBe('  ');
     expect(lines[1]).toBe('  ');
+  });
+});
+
+describe('imageToAscii', () => {
+  it('converts an image element to ASCII', async () => {
+    // Create a small test image
+    const canvas = document.createElement('canvas');
+    canvas.width = 10;
+    canvas.height = 10;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = 'gray';
+    ctx.fillRect(0, 0, 10, 10);
+
+    // Convert canvas to data URL then to image
+    const dataUrl = canvas.toDataURL('image/png');
+
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise((resolve, reject) => {
+      // Check if already loaded (node-canvas loads data URLs synchronously)
+      if ((img as any).complete) {
+        resolve(undefined);
+        return;
+      }
+      img.onload = () => resolve(undefined);
+      img.onerror = reject;
+    });
+
+    const result = await imageToAscii(img, 5);
+
+    expect(typeof result).toBe('string');
+    expect(result.length).toBeGreaterThan(0);
   });
 });

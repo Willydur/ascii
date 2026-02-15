@@ -44,3 +44,25 @@ export function canvasToAscii(canvas: HTMLCanvasElement, targetWidth: number): s
 
   return ascii;
 }
+
+export async function imageToAscii(
+  image: HTMLImageElement,
+  targetWidth: number
+): Promise<string> {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
+
+  // Calculate dimensions maintaining aspect ratio
+  const aspectRatio = image.naturalHeight / image.naturalWidth;
+  const width = targetWidth;
+  const height = Math.round(width * aspectRatio * 0.5); // 0.5 for char aspect ratio
+
+  canvas.width = width;
+  canvas.height = height;
+
+  // Draw image to canvas at target size
+  ctx.drawImage(image, 0, 0, width, height);
+
+  return canvasToAscii(canvas, width);
+}
