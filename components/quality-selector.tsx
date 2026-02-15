@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 
 type Quality = 's' | 'm' | 'l';
-type FpsOption = 1 | 2 | 5 | 10;
+export type FpsOption = 1 | 2 | 5 | 10;
 
 interface QualitySelectorProps {
   value: Quality;

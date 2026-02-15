@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { DropZone } from '@/components/drop-zone';
-import { QualitySelector, QUALITY_WIDTHS } from '@/components/quality-selector';
+import { QualitySelector, QUALITY_WIDTHS, type FpsOption } from '@/components/quality-selector';
 import { ExportPanel } from '@/components/export-panel';
 import { AsciiRenderer } from '@/components/ascii-renderer';
+import { VideoAsciiPlayer } from '@/components/video-ascii-player';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { imageToAscii, videoFrameToAscii, generateReactComponent } from '@/lib/ascii';
+import { imageToAscii, generateReactComponent, extractVideoFrames, framesToAscii, generateAnimatedReactComponent } from '@/lib/ascii';
 
 type Quality = 's' | 'm' | 'l';
 
@@ -19,10 +20,20 @@ export default function Page() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>('');
 
+  // Video animation state
+  const [fps, setFps] = useState<FpsOption>(2);
+  const [asciiFrames, setAsciiFrames] = useState<string[]>([]);
+  const [isProcessingFrames, setIsProcessingFrames] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+
   const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
     setIsVideo(selectedFile.type.startsWith('video/'));
     setError('');
+    // Clear video animation state when file changes
+    setAsciiFrames([]);
+    setFps(2);
+    setProcessingProgress({ current: 0, total: 0 });
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -49,8 +60,31 @@ export default function Page() {
             video.onerror = () => reject(new Error('Failed to load video'));
           });
 
-          const result = await videoFrameToAscii(video, QUALITY_WIDTHS[quality]);
-          setAscii(result);
+          // Calculate total frames
+          const totalFrames = Math.floor(video.duration * fps);
+
+          if (totalFrames > 200) {
+            throw new Error(
+              `Frame count (${totalFrames}) exceeds maximum (200). Try a lower FPS or shorter video.`
+            );
+          }
+
+          // Extract and process frames
+          setIsProcessingFrames(true);
+          setProcessingProgress({ current: 0, total: totalFrames });
+
+          const frameCanvases = await extractVideoFrames(video, fps);
+
+          const asciiFramesResult = await framesToAscii(
+            frameCanvases,
+            QUALITY_WIDTHS[quality],
+            (current, total) => {
+              setProcessingProgress({ current, total });
+            }
+          );
+
+          setAsciiFrames(asciiFramesResult);
+          setAscii(asciiFramesResult[0] || '');
         } else {
           const img = new Image();
           img.src = dataUrl;
@@ -66,19 +100,24 @@ export default function Page() {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Processing failed');
         setAscii('');
+        setAsciiFrames([]);
       } finally {
         setIsProcessing(false);
+        setIsProcessingFrames(false);
       }
     };
 
     process();
-  }, [dataUrl, quality, isVideo]);
+  }, [dataUrl, quality, isVideo, fps]);
 
   const componentName = file
     ? file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9]/g, '') + 'Ascii'
     : 'AsciiArt';
 
-  const exportCode = generateReactComponent(ascii, componentName);
+  // Use animated component generator for videos, static for images
+  const exportCode = isVideo && asciiFrames.length > 0
+    ? generateAnimatedReactComponent(asciiFrames, fps, componentName)
+    : generateReactComponent(ascii, componentName);
 
   return (
     <div className="min-h-screen p-8 max-w-6xl mx-auto space-y-8">
@@ -108,6 +147,9 @@ export default function Page() {
                     setFile(null);
                     setDataUrl('');
                     setAscii('');
+                    setAsciiFrames([]);
+                    setFps(2);
+                    setProcessingProgress({ current: 0, total: 0 });
                   }}
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
@@ -116,37 +158,62 @@ export default function Page() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <QualitySelector value={quality} onChange={setQuality} />
+              <QualitySelector
+                value={quality}
+                onChange={setQuality}
+                fps={fps}
+                onFpsChange={setFps}
+                showFps={isVideo}
+              />
 
               {isProcessing && (
                 <div className="text-center py-8 text-muted-foreground">
-                  Processing...
+                  {isProcessingFrames ? (
+                    <div className="space-y-2">
+                      <p>Processing frames...</p>
+                      <div className="w-full max-w-md mx-auto bg-muted rounded-full h-4 overflow-hidden">
+                        <div
+                          className="bg-primary h-full transition-all duration-300"
+                          style={{
+                            width: `${processingProgress.total > 0 ? (processingProgress.current / processingProgress.total) * 100 : 0}%`
+                          }}
+                        />
+                      </div>
+                      <p className="text-sm">
+                        {processingProgress.current} / {processingProgress.total} frames
+                      </p>
+                    </div>
+                  ) : (
+                    'Processing...'
+                  )}
                 </div>
               )}
 
               {!isProcessing && ascii && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium mb-2">Original</p>
-                    {isVideo ? (
-                      <video
-                        src={dataUrl}
-                        className="max-w-full rounded-md"
-                        controls
-                      />
-                    ) : (
-                      <img
-                        src={dataUrl}
-                        alt="Original"
-                        className="max-w-full rounded-md"
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">ASCII</p>
-                    <AsciiRenderer content={ascii} />
-                  </div>
-                </div>
+                <>
+                  {isVideo && asciiFrames.length > 0 ? (
+                    <VideoAsciiPlayer
+                      videoSrc={dataUrl}
+                      frames={asciiFrames}
+                      fps={fps}
+                    />
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium mb-2">Original</p>
+                        <img
+                          src={dataUrl}
+                          alt="Original"
+                          className="max-w-full rounded-md"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-2">ASCII</p>
+                        <AsciiRenderer content={ascii} />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
