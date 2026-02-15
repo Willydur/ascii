@@ -1,4 +1,8 @@
 import { Image, createCanvas } from 'canvas';
+import { expect } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+
+expect.extend(matchers);
 
 // Override jsdom's Image with node-canvas's Image
 globalThis.Image = Image as any;
