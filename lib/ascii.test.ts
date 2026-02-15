@@ -262,7 +262,7 @@ describe("extractVideoFrames", () => {
 
     // 100 seconds at 3fps = 300 frames, which exceeds 200 limit
     await expect(extractVideoFrames(mockVideo, 3)).rejects.toThrow(
-      "Frame count exceeds maximum limit of 200"
+      "Frame count (300) exceeds maximum (200)"
     );
   });
 });

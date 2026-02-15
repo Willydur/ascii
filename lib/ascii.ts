@@ -136,7 +136,9 @@ export async function extractVideoFrames(
   const totalFrames = Math.floor(video.duration * fps);
 
   if (totalFrames > 200) {
-    throw new Error('Frame count exceeds maximum limit of 200');
+    throw new Error(
+      `Frame count (${totalFrames}) exceeds maximum (200). Try a lower FPS or shorter video.`
+    );
   }
 
   const frames: HTMLCanvasElement[] = [];
