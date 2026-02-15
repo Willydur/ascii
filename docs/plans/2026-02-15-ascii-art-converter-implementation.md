@@ -13,6 +13,7 @@
 ## Task 1: Create ASCII conversion utilities
 
 **Files:**
+
 - Create: `lib/ascii.ts`
 - Test: `lib/ascii.test.ts`
 
@@ -21,33 +22,33 @@
 Create `lib/ascii.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { getLuminance, pixelToChar, ASCII_CHARS } from './ascii';
+import { describe, it, expect } from "vitest";
+import { getLuminance, pixelToChar, ASCII_CHARS } from "./ascii";
 
-describe('getLuminance', () => {
-  it('returns 0 for black', () => {
+describe("getLuminance", () => {
+  it("returns 0 for black", () => {
     expect(getLuminance(0, 0, 0)).toBe(0);
   });
 
-  it('returns 255 for white', () => {
+  it("returns 255 for white", () => {
     expect(getLuminance(255, 255, 255)).toBe(255);
   });
 
-  it('calculates correct luminance for gray', () => {
+  it("calculates correct luminance for gray", () => {
     expect(getLuminance(128, 128, 128)).toBeCloseTo(128, 0);
   });
 });
 
-describe('pixelToChar', () => {
-  it('returns darkest char for black', () => {
-    expect(pixelToChar(0, ASCII_CHARS)).toBe('@');
+describe("pixelToChar", () => {
+  it("returns darkest char for black", () => {
+    expect(pixelToChar(0, ASCII_CHARS)).toBe("@");
   });
 
-  it('returns lightest char for white', () => {
-    expect(pixelToChar(255, ASCII_CHARS)).toBe(' ');
+  it("returns lightest char for white", () => {
+    expect(pixelToChar(255, ASCII_CHARS)).toBe(" ");
   });
 
-  it('returns middle char for mid-gray', () => {
+  it("returns middle char for mid-gray", () => {
     const midIndex = Math.floor(ASCII_CHARS.length / 2);
     const midLum = Math.floor((255 * midIndex) / (ASCII_CHARS.length - 1));
     expect(pixelToChar(midLum, ASCII_CHARS)).toBe(ASCII_CHARS[midIndex]);
@@ -66,7 +67,7 @@ Expected: FAIL with "Cannot find module './ascii'"
 Create `lib/ascii.ts`:
 
 ```typescript
-export const ASCII_CHARS = '@%#*+=-:. ';
+export const ASCII_CHARS = "@%#*+=-:. ";
 
 export function getLuminance(r: number, g: number, b: number): number {
   return Math.round(0.299 * r + 0.587 * g + 0.114 * b);
@@ -96,6 +97,7 @@ git commit -m "feat: add ASCII conversion utilities"
 ## Task 2: Add canvasToAscii function
 
 **Files:**
+
 - Modify: `lib/ascii.ts`
 - Test: `lib/ascii.test.ts`
 
@@ -104,30 +106,30 @@ git commit -m "feat: add ASCII conversion utilities"
 Add to `lib/ascii.test.ts`:
 
 ```typescript
-import { canvasToAscii, getLuminance, pixelToChar, ASCII_CHARS } from './ascii';
+import { canvasToAscii, getLuminance, pixelToChar, ASCII_CHARS } from "./ascii";
 
-describe('canvasToAscii', () => {
-  it('converts a canvas to ASCII string', () => {
+describe("canvasToAscii", () => {
+  it("converts a canvas to ASCII string", () => {
     // Create a 2x2 canvas with known colors
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 2;
     canvas.height = 2;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext("2d")!;
 
     // Fill with black and white
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = "black";
     ctx.fillRect(0, 0, 1, 1);
     ctx.fillRect(1, 0, 1, 1);
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 1, 1, 1);
     ctx.fillRect(1, 1, 1, 1);
 
     const result = canvasToAscii(canvas, 2);
-    const lines = result.split('\n');
+    const lines = result.split("\n");
 
     expect(lines).toHaveLength(2);
-    expect(lines[0]).toBe('@@'); // black = darkest char
-    expect(lines[1]).toBe('  '); // white = lightest char
+    expect(lines[0]).toBe("@@"); // black = darkest char
+    expect(lines[1]).toBe("  "); // white = lightest char
   });
 });
 ```
@@ -143,14 +145,17 @@ Expected: FAIL with "canvasToAscii is not defined"
 Add to `lib/ascii.ts`:
 
 ```typescript
-export function canvasToAscii(canvas: HTMLCanvasElement, width: number): string {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
+export function canvasToAscii(
+  canvas: HTMLCanvasElement,
+  width: number,
+): string {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get canvas context");
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
-  let ascii = '';
+  let ascii = "";
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
       const i = (y * canvas.width + x) * 4;
@@ -160,7 +165,7 @@ export function canvasToAscii(canvas: HTMLCanvasElement, width: number): string 
       const lum = getLuminance(r, g, b);
       ascii += pixelToChar(lum, ASCII_CHARS);
     }
-    if (y < canvas.height - 1) ascii += '\n';
+    if (y < canvas.height - 1) ascii += "\n";
   }
 
   return ascii;
@@ -185,6 +190,7 @@ git commit -m "feat: add canvasToAscii function"
 ## Task 3: Add imageToAscii function
 
 **Files:**
+
 - Modify: `lib/ascii.ts`
 
 **Step 1: Write the failing test**
@@ -192,30 +198,32 @@ git commit -m "feat: add canvasToAscii function"
 Add to `lib/ascii.test.ts`:
 
 ```typescript
-describe('imageToAscii', () => {
-  it('converts an image element to ASCII', async () => {
+describe("imageToAscii", () => {
+  it("converts an image element to ASCII", async () => {
     // Create a small test image
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 10;
     canvas.height = 10;
-    const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = 'gray';
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "gray";
     ctx.fillRect(0, 0, 10, 10);
 
     // Convert canvas to blob then to image
     const blob = await new Promise<Blob>((resolve) =>
-      canvas.toBlob((b) => resolve(b!), 'image/png')
+      canvas.toBlob((b) => resolve(b!), "image/png"),
     );
     const url = URL.createObjectURL(blob);
 
     const img = new Image();
     img.src = url;
-    await new Promise((resolve) => { img.onload = resolve; });
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
 
-    const { imageToAscii } = await import('./ascii');
+    const { imageToAscii } = await import("./ascii");
     const result = await imageToAscii(img, 5);
 
-    expect(typeof result).toBe('string');
+    expect(typeof result).toBe("string");
     expect(result.length).toBeGreaterThan(0);
 
     URL.revokeObjectURL(url);
@@ -236,11 +244,11 @@ Add to `lib/ascii.ts`:
 ```typescript
 export async function imageToAscii(
   image: HTMLImageElement,
-  targetWidth: number
+  targetWidth: number,
 ): Promise<string> {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get canvas context");
 
   // Calculate dimensions maintaining aspect ratio
   const aspectRatio = image.naturalHeight / image.naturalWidth;
@@ -275,6 +283,7 @@ git commit -m "feat: add imageToAscii function"
 ## Task 4: Add video frame extraction
 
 **Files:**
+
 - Modify: `lib/ascii.ts`
 
 **Step 1: Write the failing test**
@@ -288,13 +297,13 @@ Add to `lib/ascii.ts`:
 ```typescript
 export function extractVideoFrame(
   video: HTMLVideoElement,
-  time: number = 0
+  time: number = 0,
 ): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     if (!ctx) {
-      reject(new Error('Could not get canvas context'));
+      reject(new Error("Could not get canvas context"));
       return;
     }
 
@@ -302,11 +311,11 @@ export function extractVideoFrame(
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
-      video.removeEventListener('seeked', handleSeeked);
+      video.removeEventListener("seeked", handleSeeked);
       resolve(canvas);
     };
 
-    video.addEventListener('seeked', handleSeeked);
+    video.addEventListener("seeked", handleSeeked);
     video.currentTime = time;
   });
 }
@@ -314,14 +323,14 @@ export function extractVideoFrame(
 export async function videoFrameToAscii(
   video: HTMLVideoElement,
   targetWidth: number,
-  time: number = 0
+  time: number = 0,
 ): Promise<string> {
   const canvas = await extractVideoFrame(video, time);
 
   // Resize canvas to target width
-  const resizedCanvas = document.createElement('canvas');
-  const ctx = resizedCanvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
+  const resizedCanvas = document.createElement("canvas");
+  const ctx = resizedCanvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get canvas context");
 
   const aspectRatio = canvas.height / canvas.width;
   const width = targetWidth;
@@ -347,6 +356,7 @@ git commit -m "feat: add video frame extraction"
 ## Task 5: Add React component generator
 
 **Files:**
+
 - Modify: `lib/ascii.ts`
 - Test: `lib/ascii.test.ts`
 
@@ -355,19 +365,19 @@ git commit -m "feat: add video frame extraction"
 Add to `lib/ascii.test.ts`:
 
 ```typescript
-describe('generateReactComponent', () => {
-  it('generates a valid React component string', () => {
-    const { generateReactComponent } = require('./ascii');
-    const ascii = '@@\n  ';
-    const componentName = 'TestArt';
+describe("generateReactComponent", () => {
+  it("generates a valid React component string", () => {
+    const { generateReactComponent } = require("./ascii");
+    const ascii = "@@\n  ";
+    const componentName = "TestArt";
 
     const result = generateReactComponent(ascii, componentName);
 
-    expect(result).toContain('export function TestArt()');
-    expect(result).toContain('const art = `@@');
-    expect(result).toContain('<pre');
-    expect(result).toContain('font-mono');
-    expect(result).toContain('whitespace-pre');
+    expect(result).toContain("export function TestArt()");
+    expect(result).toContain("const art = `@@");
+    expect(result).toContain("<pre");
+    expect(result).toContain("font-mono");
+    expect(result).toContain("whitespace-pre");
   });
 });
 ```
@@ -383,9 +393,12 @@ Expected: FAIL with "generateReactComponent is not defined"
 Add to `lib/ascii.ts`:
 
 ```typescript
-export function generateReactComponent(ascii: string, componentName: string): string {
+export function generateReactComponent(
+  ascii: string,
+  componentName: string,
+): string {
   // Escape backticks in ASCII
-  const escapedAscii = ascii.replace(/`/g, '\\`');
+  const escapedAscii = ascii.replace(/`/g, "\\`");
 
   return `export function ${componentName}() {
   const art = \`${escapedAscii}\`;
@@ -416,6 +429,7 @@ git commit -m "feat: add React component generator"
 ## Task 6: Create DropZone component
 
 **Files:**
+
 - Create: `components/drop-zone.tsx`
 
 **Step 1: Create component**
@@ -486,6 +500,7 @@ git commit -m "feat: add DropZone component"
 ## Task 7: Create QualitySelector component
 
 **Files:**
+
 - Create: `components/quality-selector.tsx`
 
 **Step 1: Create component**
@@ -554,6 +569,7 @@ git commit -m "feat: add QualitySelector component"
 ## Task 8: Create ExportPanel component
 
 **Files:**
+
 - Create: `components/export-panel.tsx`
 
 **Step 1: Create component**
@@ -626,7 +642,7 @@ export function ExportPanel({ code, fileName }: ExportPanelProps) {
       <Textarea
         value={code}
         readOnly
-        className="font-mono text-xs min-h-[200px] resize-none"
+        className="font-mono text-xs min-h-50 resize-none"
       />
     </div>
   );
@@ -645,6 +661,7 @@ git commit -m "feat: add ExportPanel component"
 ## Task 9: Create AsciiRenderer component
 
 **Files:**
+
 - Create: `components/ascii-renderer.tsx`
 
 **Step 1: Create component**
@@ -688,6 +705,7 @@ git commit -m "feat: add AsciiRenderer component"
 ## Task 10: Build main page
 
 **Files:**
+
 - Modify: `app/page.tsx`
 
 **Step 1: Replace page content**
@@ -874,6 +892,7 @@ git commit -m "feat: add main page with full ASCII conversion flow"
 ## Task 11: Update layout metadata
 
 **Files:**
+
 - Modify: `app/layout.tsx`
 
 **Step 1: Update metadata**
@@ -882,8 +901,8 @@ In `app/layout.tsx`, change:
 
 ```typescript
 export const metadata: Metadata = {
-  title: 'ASCII Art Converter',
-  description: 'Convert images and videos to ASCII art',
+  title: "ASCII Art Converter",
+  description: "Convert images and videos to ASCII art",
 };
 ```
 
@@ -899,6 +918,7 @@ git commit -m "chore: update page metadata"
 ## Task 12: Add vitest for testing
 
 **Files:**
+
 - Modify: `package.json`
 - Create: `vitest.config.ts`
 
@@ -911,19 +931,19 @@ Run: `npm install -D vitest @vitejs/plugin-react jsdom`
 Create `vitest.config.ts`:
 
 ```typescript
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
+    environment: "jsdom",
     globals: true,
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './'),
+      "@": path.resolve(__dirname, "./"),
     },
   },
 });
@@ -949,6 +969,7 @@ git commit -m "chore: add vitest for testing"
 ## Task 13: Run all tests
 
 **Files:**
+
 - None
 
 **Step 1: Run tests**
@@ -966,6 +987,7 @@ If tests fail, fix and commit.
 ## Task 14: Final verification
 
 **Files:**
+
 - None
 
 **Step 1: Build the app**
@@ -979,6 +1001,7 @@ Expected: Build succeeds with no errors
 Run: `npm run dev`
 
 Test:
+
 1. Drop an image file
 2. Verify preview shows original + ASCII
 3. Change quality (S/M/L)
@@ -998,6 +1021,7 @@ git commit -m "feat: complete ASCII art converter implementation" --allow-empty
 ## Summary
 
 This plan builds a complete ASCII art converter with:
+
 - Canvas-based image processing utilities (tested)
 - Drag-and-drop file upload
 - Quality selector (S/M/L = 50/100/150px)
