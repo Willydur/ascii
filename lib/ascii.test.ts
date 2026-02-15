@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getLuminance, pixelToChar, ASCII_CHARS } from './ascii';
+import { canvasToAscii, getLuminance, pixelToChar, ASCII_CHARS } from './ascii';
 
 describe('getLuminance', () => {
   it('returns 0 for black', () => {
@@ -28,5 +28,30 @@ describe('pixelToChar', () => {
     const midIndex = Math.floor(ASCII_CHARS.length / 2);
     const midLum = Math.floor((255 * midIndex) / (ASCII_CHARS.length - 1));
     expect(pixelToChar(midLum, ASCII_CHARS)).toBe(ASCII_CHARS[midIndex]);
+  });
+});
+
+describe('canvasToAscii', () => {
+  it('converts a canvas to ASCII string', () => {
+    // Create a 2x2 canvas with known colors
+    const canvas = document.createElement('canvas');
+    canvas.width = 2;
+    canvas.height = 2;
+    const ctx = canvas.getContext('2d')!;
+
+    // Fill with black and white
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, 1, 1);
+    ctx.fillRect(1, 0, 1, 1);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 1, 1, 1);
+    ctx.fillRect(1, 1, 1, 1);
+
+    const result = canvasToAscii(canvas, 2);
+    const lines = result.split('\n');
+
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toBe('@@'); // black = darkest char
+    expect(lines[1]).toBe('  '); // white = lightest char
   });
 });
