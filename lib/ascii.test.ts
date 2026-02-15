@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canvasToAscii, getLuminance, pixelToChar, ASCII_CHARS, imageToAscii } from './ascii';
+import { canvasToAscii, getLuminance, pixelToChar, ASCII_CHARS, imageToAscii, generateReactComponent } from './ascii';
 
 describe('getLuminance', () => {
   it('returns 0 for black', () => {
@@ -128,5 +128,20 @@ describe('imageToAscii', () => {
 
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe('generateReactComponent', () => {
+  it('generates a valid React component string', () => {
+    const ascii = '@@\n  ';
+    const componentName = 'TestArt';
+
+    const result = generateReactComponent(ascii, componentName);
+
+    expect(result).toContain('export function TestArt()');
+    expect(result).toContain('const art = `@@');
+    expect(result).toContain('<pre');
+    expect(result).toContain('font-mono');
+    expect(result).toContain('whitespace-pre');
   });
 });

@@ -114,3 +114,17 @@ export async function videoFrameToAscii(
 
   return canvasToAscii(resizedCanvas, width);
 }
+
+export function generateReactComponent(ascii: string, componentName: string): string {
+  // Escape backticks in ASCII
+  const escapedAscii = ascii.replace(/`/g, '\\`');
+
+  return `export function ${componentName}() {
+  const art = \`${escapedAscii}\`;
+  return (
+    <pre className="font-mono text-xs leading-none whitespace-pre">
+      {art}
+    </pre>
+  );
+}`;
+}
