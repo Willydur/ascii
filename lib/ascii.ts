@@ -9,24 +9,35 @@ export function pixelToChar(luminance: number, charSet: string): string {
   return charSet[Math.min(index, charSet.length - 1)];
 }
 
-export function canvasToAscii(canvas: HTMLCanvasElement, width: number): string {
+export function canvasToAscii(canvas: HTMLCanvasElement, targetWidth: number): string {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
+  // Calculate scaling factor
+  const scaleX = canvas.width / targetWidth;
+  const targetHeight = Math.round(canvas.height / scaleX);
+
   let ascii = '';
-  for (let y = 0; y < canvas.height; y++) {
-    for (let x = 0; x < canvas.width; x++) {
-      const i = (y * canvas.width + x) * 4;
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
+  for (let y = 0; y < targetHeight; y++) {
+    for (let x = 0; x < targetWidth; x++) {
+      // Sample from source canvas
+      const srcX = Math.floor(x * scaleX);
+      const srcY = Math.floor(y * scaleX);
+      const i = (srcY * canvas.width + srcX) * 4;
+
+      // Composite against white background using alpha
+      const a = data[i + 3] / 255;
+      const r = Math.round(data[i] * a + 255 * (1 - a));
+      const g = Math.round(data[i + 1] * a + 255 * (1 - a));
+      const b = Math.round(data[i + 2] * a + 255 * (1 - a));
+
       const lum = getLuminance(r, g, b);
       ascii += pixelToChar(lum, ASCII_CHARS);
     }
-    if (y < canvas.height - 1) ascii += '\n';
+    if (y < targetHeight - 1) ascii += '\n';
   }
 
   return ascii;

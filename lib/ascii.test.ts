@@ -54,4 +54,47 @@ describe('canvasToAscii', () => {
     expect(lines[0]).toBe('@@'); // black = darkest char
     expect(lines[1]).toBe('  '); // white = lightest char
   });
+
+  it('scales canvas to target width', () => {
+    // Create a 4x4 canvas with a checkerboard pattern
+    const canvas = document.createElement('canvas');
+    canvas.width = 4;
+    canvas.height = 4;
+    const ctx = canvas.getContext('2d')!;
+
+    // Fill with black and white checkerboard
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        ctx.fillStyle = (x + y) % 2 === 0 ? 'black' : 'white';
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+
+    // Scale down to 2x2
+    const result = canvasToAscii(canvas, 2);
+    const lines = result.split('\n');
+
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toHaveLength(2);
+    expect(lines[1]).toHaveLength(2);
+  });
+
+  it('handles transparent pixels by compositing against white', () => {
+    // Create a 2x2 canvas with transparent pixels
+    const canvas = document.createElement('canvas');
+    canvas.width = 2;
+    canvas.height = 2;
+    const ctx = canvas.getContext('2d')!;
+
+    // Fill with fully transparent black
+    ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+    ctx.fillRect(0, 0, 2, 2);
+
+    const result = canvasToAscii(canvas, 2);
+    const lines = result.split('\n');
+
+    // Fully transparent should appear as white (lightest char)
+    expect(lines[0]).toBe('  ');
+    expect(lines[1]).toBe('  ');
+  });
 });
