@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act, cleanup } from '@testing-library/react';
-import { VideoAsciiPlayer } from './video-ascii-player';
+import { VideoAsciiPlayer } from '@/components/video-ascii-player';
 
 describe('VideoAsciiPlayer', () => {
   beforeEach(() => {

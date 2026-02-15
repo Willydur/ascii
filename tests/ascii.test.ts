@@ -9,7 +9,7 @@ import {
   extractVideoFrames,
   framesToAscii,
   generateAnimatedReactComponent,
-} from "./ascii";
+} from "@/lib/ascii";
 
 describe("getLuminance", () => {
   it("returns 0 for black", () => {
