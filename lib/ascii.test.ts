@@ -7,6 +7,7 @@ import {
   imageToAscii,
   generateReactComponent,
   extractVideoFrames,
+  framesToAscii,
 } from "./ascii";
 
 describe("getLuminance", () => {
@@ -264,5 +265,105 @@ describe("extractVideoFrames", () => {
     await expect(extractVideoFrames(mockVideo, 3)).rejects.toThrow(
       "Frame count (300) exceeds maximum (200)"
     );
+  });
+});
+
+describe("framesToAscii", () => {
+  it("converts multiple canvases to ASCII strings", async () => {
+    // Create 3 test canvases with different patterns
+    const frames: HTMLCanvasElement[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 4;
+      canvas.height = 4;
+      const ctx = canvas.getContext("2d")!;
+
+      // Fill with different shades
+      if (i === 0) {
+        ctx.fillStyle = "black";
+      } else if (i === 1) {
+        ctx.fillStyle = "gray";
+      } else {
+        ctx.fillStyle = "white";
+      }
+      ctx.fillRect(0, 0, 4, 4);
+      frames.push(canvas);
+    }
+
+    const result = await framesToAscii(frames, 2);
+
+    expect(result).toHaveLength(3);
+    expect(typeof result[0]).toBe("string");
+    expect(typeof result[1]).toBe("string");
+    expect(typeof result[2]).toBe("string");
+
+    // Black frame should have dark chars, white frame light chars
+    expect(result[0]).not.toBe(result[2]); // Black and white should differ
+  });
+
+  it("calls onProgress callback for each frame", async () => {
+    const onProgress = vi.fn();
+
+    // Create 3 test canvases
+    const frames: HTMLCanvasElement[] = [];
+    for (let i = 0; i < 3; i++) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 2;
+      canvas.height = 2;
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, 2, 2);
+      frames.push(canvas);
+    }
+
+    await framesToAscii(frames, 2, onProgress);
+
+    // Should be called once per frame
+    expect(onProgress).toHaveBeenCalledTimes(3);
+
+    // Check progress values
+    expect(onProgress).toHaveBeenNthCalledWith(1, 1, 3);
+    expect(onProgress).toHaveBeenNthCalledWith(2, 2, 3);
+    expect(onProgress).toHaveBeenNthCalledWith(3, 3, 3);
+  });
+
+  it("processes frames sequentially", async () => {
+    const processingOrder: number[] = [];
+
+    // Create 3 test canvases
+    const frames: HTMLCanvasElement[] = [];
+    for (let i = 0; i < 3; i++) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 2;
+      canvas.height = 2;
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, 2, 2);
+      frames.push(canvas);
+    }
+
+    const onProgress = (current: number, total: number) => {
+      processingOrder.push(current);
+    };
+
+    await framesToAscii(frames, 2, onProgress);
+
+    // Should process in order
+    expect(processingOrder).toEqual([1, 2, 3]);
+  });
+
+  it("works without onProgress callback", async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 2;
+    canvas.height = 2;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, 2, 2);
+
+    const result = await framesToAscii([canvas], 2);
+
+    expect(result).toHaveLength(1);
+    expect(typeof result[0]).toBe("string");
   });
 });

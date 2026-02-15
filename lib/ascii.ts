@@ -152,3 +152,39 @@ export async function extractVideoFrames(
 
   return frames;
 }
+
+export async function framesToAscii(
+  frames: HTMLCanvasElement[],
+  targetWidth: number,
+  onProgress?: (current: number, total: number) => void
+): Promise<string[]> {
+  const asciiFrames: string[] = [];
+
+  for (let i = 0; i < frames.length; i++) {
+    const frame = frames[i];
+
+    // Resize canvas to target width (same logic as videoFrameToAscii)
+    const resizedCanvas = document.createElement('canvas');
+    const ctx = resizedCanvas.getContext('2d');
+    if (!ctx) throw new Error('Could not get canvas context');
+
+    const aspectRatio = frame.height / frame.width;
+    const width = targetWidth;
+    const height = Math.round(width * aspectRatio * 0.5);
+
+    resizedCanvas.width = width;
+    resizedCanvas.height = height;
+    ctx.drawImage(frame, 0, 0, width, height);
+
+    // Convert to ASCII
+    const ascii = canvasToAscii(resizedCanvas, width);
+    asciiFrames.push(ascii);
+
+    // Call progress callback if provided
+    if (onProgress) {
+      onProgress(i + 1, frames.length);
+    }
+  }
+
+  return asciiFrames;
+}
