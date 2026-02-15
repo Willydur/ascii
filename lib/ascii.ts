@@ -188,3 +188,40 @@ export async function framesToAscii(
 
   return asciiFrames;
 }
+
+export function generateAnimatedReactComponent(
+  frames: string[],
+  fps: number,
+  componentName: string
+): string {
+  const interval = Math.round(1000 / fps);
+  const escapedFrames = frames.map((frame) => frame.replace(/`/g, '\\`'));
+
+  const framesArray = escapedFrames
+    .map((frame) => `    \`${frame}\``)
+    .join(',\n');
+
+  return `import { useState, useEffect } from "react";
+
+const frames = [
+${framesArray}
+];
+
+export function ${componentName}() {
+  const [currentFrame, setCurrentFrame] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentFrame((prev) => (prev + 1) % frames.length);
+    }, ${interval});
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  return (
+    <pre className="font-mono text-xs leading-none whitespace-pre">
+      {frames[currentFrame]}
+    </pre>
+  );
+}`;
+}

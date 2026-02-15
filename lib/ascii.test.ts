@@ -8,6 +8,7 @@ import {
   generateReactComponent,
   extractVideoFrames,
   framesToAscii,
+  generateAnimatedReactComponent,
 } from "./ascii";
 
 describe("getLuminance", () => {
@@ -365,5 +366,67 @@ describe("framesToAscii", () => {
 
     expect(result).toHaveLength(1);
     expect(typeof result[0]).toBe("string");
+  });
+});
+
+describe("generateAnimatedReactComponent", () => {
+  it("generates a valid animated React component string", () => {
+    const frames = ["frame1", "frame2", "frame3"];
+    const fps = 10;
+    const componentName = "AnimatedAscii";
+
+    const result = generateAnimatedReactComponent(frames, fps, componentName);
+
+    expect(result).toContain("export function AnimatedAscii()");
+    expect(result).toContain("const frames =");
+    expect(result).toContain("useState");
+    expect(result).toContain("useEffect");
+    expect(result).toContain("setInterval");
+    expect(result).toContain("100"); // 1000/10 = 100ms
+  });
+
+  it("calculates correct interval for different fps values", () => {
+    const frames = ["frame1"];
+
+    const result30fps = generateAnimatedReactComponent(frames, 30, "Test");
+    expect(result30fps).toContain("33"); // 1000/30 = 33.33 -> 33
+
+    const result60fps = generateAnimatedReactComponent(frames, 60, "Test");
+    expect(result60fps).toContain("17"); // 1000/60 = 16.67 -> 17
+
+    const result1fps = generateAnimatedReactComponent(frames, 1, "Test");
+    expect(result1fps).toContain("1000"); // 1000/1 = 1000
+  });
+
+  it("escapes backticks in frames", () => {
+    const frames = ["frame with `backtick`"];
+    const fps = 10;
+    const componentName = "Test";
+
+    const result = generateAnimatedReactComponent(frames, fps, componentName);
+
+    expect(result).toContain("frame with \\`backtick\\`");
+    expect(result).not.toContain("`backtick`"); // Should not have unescaped backticks
+  });
+
+  it("includes proper React imports", () => {
+    const frames = ["frame1"];
+    const fps = 10;
+    const componentName = "Test";
+
+    const result = generateAnimatedReactComponent(frames, fps, componentName);
+
+    expect(result).toContain('import { useState, useEffect } from "react"');
+  });
+
+  it("includes frames array in the generated component", () => {
+    const frames = ["frame1", "frame2"];
+    const fps = 10;
+    const componentName = "Test";
+
+    const result = generateAnimatedReactComponent(frames, fps, componentName);
+
+    expect(result).toContain('`frame1`');
+    expect(result).toContain('`frame2`');
   });
 });
