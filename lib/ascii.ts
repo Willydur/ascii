@@ -128,3 +128,25 @@ export function generateReactComponent(ascii: string, componentName: string): st
   );
 }`;
 }
+
+export async function extractVideoFrames(
+  video: HTMLVideoElement,
+  fps: number
+): Promise<HTMLCanvasElement[]> {
+  const totalFrames = Math.floor(video.duration * fps);
+
+  if (totalFrames > 200) {
+    throw new Error('Frame count exceeds maximum limit of 200');
+  }
+
+  const frames: HTMLCanvasElement[] = [];
+  const interval = 1 / fps;
+
+  for (let i = 0; i < totalFrames; i++) {
+    const time = i * interval;
+    const canvas = await extractVideoFrame(video, time);
+    frames.push(canvas);
+  }
+
+  return frames;
+}
