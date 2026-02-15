@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { CopyIcon, DownloadIcon, CheckIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from "react";
+import { CopyIcon, DownloadIcon, CheckIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ExportPanelProps {
   code: string;
@@ -20,9 +20,9 @@ export function ExportPanel({ code, fileName }: ExportPanelProps) {
   };
 
   const handleDownload = () => {
-    const blob = new Blob([code], { type: 'text/typescript' });
+    const blob = new Blob([code], { type: "text/typescript" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `${fileName}.tsx`;
     document.body.appendChild(a);
@@ -47,7 +47,7 @@ export function ExportPanel({ code, fileName }: ExportPanelProps) {
             ) : (
               <CopyIcon className="h-4 w-4" />
             )}
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? "Copied!" : "Copy"}
           </Button>
           <Button
             variant="outline"

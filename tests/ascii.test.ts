@@ -199,41 +199,61 @@ describe("extractVideoFrames", () => {
 
     // Mock canvas getContext to return a context that accepts our mock video
     const originalCreateElement = document.createElement.bind(document);
-    vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
-      if (tagName.toLowerCase() === "canvas") {
-        const canvas = originalCreateElement("canvas") as HTMLCanvasElement;
-        const originalGetContext = canvas.getContext.bind(canvas);
-        canvas.getContext = vi.fn((contextId: string) => {
-          const ctx = originalGetContext(contextId);
-          if (ctx && contextId === "2d") {
-            // Mock drawImage to handle the mock video element
-            const originalDrawImage = ctx.drawImage.bind(ctx);
-            vi.spyOn(ctx, "drawImage").mockImplementation((
-              image: CanvasImageSource,
-              dx: number,
-              dy?: number,
-              dWidth?: number,
-              dHeight?: number
-            ) => {
-              // If it's our mock video, draw the mock frame canvas instead
-              if (image === mockVideo) {
-                if (typeof dy === "number" && typeof dWidth === "number" && typeof dHeight === "number") {
-                  return originalDrawImage(mockFrameCanvas, dx, dy, dWidth, dHeight);
-                } else if (typeof dy === "number") {
-                  return originalDrawImage(mockFrameCanvas, dx, dy);
-                } else {
-                  return originalDrawImage(mockFrameCanvas, dx);
-                }
-              }
-              return originalDrawImage(image, dx, dy as number, dWidth as number, dHeight as number);
-            });
-          }
-          return ctx;
-        }) as any;
-        return canvas;
-      }
-      return originalCreateElement(tagName);
-    });
+    vi.spyOn(document, "createElement").mockImplementation(
+      (tagName: string) => {
+        if (tagName.toLowerCase() === "canvas") {
+          const canvas = originalCreateElement("canvas") as HTMLCanvasElement;
+          const originalGetContext = canvas.getContext.bind(canvas);
+          canvas.getContext = vi.fn((contextId: string) => {
+            const ctx = originalGetContext(contextId);
+            if (ctx && contextId === "2d") {
+              // Mock drawImage to handle the mock video element
+              const originalDrawImage = ctx.drawImage.bind(ctx);
+              vi.spyOn(ctx, "drawImage").mockImplementation(
+                (
+                  image: CanvasImageSource,
+                  dx: number,
+                  dy?: number,
+                  dWidth?: number,
+                  dHeight?: number,
+                ) => {
+                  // If it's our mock video, draw the mock frame canvas instead
+                  if (image === mockVideo) {
+                    if (
+                      typeof dy === "number" &&
+                      typeof dWidth === "number" &&
+                      typeof dHeight === "number"
+                    ) {
+                      return originalDrawImage(
+                        mockFrameCanvas,
+                        dx,
+                        dy,
+                        dWidth,
+                        dHeight,
+                      );
+                    } else if (typeof dy === "number") {
+                      return originalDrawImage(mockFrameCanvas, dx, dy);
+                    } else {
+                      return originalDrawImage(mockFrameCanvas, dx);
+                    }
+                  }
+                  return originalDrawImage(
+                    image,
+                    dx,
+                    dy as number,
+                    dWidth as number,
+                    dHeight as number,
+                  );
+                },
+              );
+            }
+            return ctx;
+          }) as any;
+          return canvas;
+        }
+        return originalCreateElement(tagName);
+      },
+    );
 
     const frames = await extractVideoFrames(mockVideo, 2);
 
@@ -264,7 +284,7 @@ describe("extractVideoFrames", () => {
 
     // 100 seconds at 3fps = 300 frames, which exceeds 200 limit
     await expect(extractVideoFrames(mockVideo, 3)).rejects.toThrow(
-      "Frame count (300) exceeds maximum (200)"
+      "Frame count (300) exceeds maximum (200)",
     );
   });
 });
@@ -426,7 +446,7 @@ describe("generateAnimatedReactComponent", () => {
 
     const result = generateAnimatedReactComponent(frames, fps, componentName);
 
-    expect(result).toContain('`frame1`');
-    expect(result).toContain('`frame2`');
+    expect(result).toContain("`frame1`");
+    expect(result).toContain("`frame2`");
   });
 });

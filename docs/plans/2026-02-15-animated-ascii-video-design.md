@@ -35,15 +35,16 @@ Extend the ASCII Art Converter to support full video conversion to animated ASCI
 
 ## Components
 
-| Component | Props | Purpose |
-|-----------|-------|---------|
-| `VideoAsciiPlayer` | `videoSrc: string, frames: string[], fps: number` | Shows original video with synchronized ASCII animation side-by-side. Uses `useEffect` interval to cycle frames. |
-| `QualitySelector` | `value: Quality, fps: number, onQualityChange, onFpsChange` | Extended with FPS dropdown (1, 2, 5, 10 fps). |
-| `ProgressIndicator` | `current: number, total: number` | Shows frame extraction/conversion progress. |
+| Component           | Props                                                       | Purpose                                                                                                         |
+| ------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `VideoAsciiPlayer`  | `videoSrc: string, frames: string[], fps: number`           | Shows original video with synchronized ASCII animation side-by-side. Uses `useEffect` interval to cycle frames. |
+| `QualitySelector`   | `value: Quality, fps: number, onQualityChange, onFpsChange` | Extended with FPS dropdown (1, 2, 5, 10 fps).                                                                   |
+| `ProgressIndicator` | `current: number, total: number`                            | Shows frame extraction/conversion progress.                                                                     |
 
 ## State Management
 
 Additions to `page.tsx` state:
+
 - `asciiFrames: string[]` — array of ASCII frames
 - `fps: number` — selected frame rate (default: 2)
 - `isProcessingFrames: boolean` — for progress indication
@@ -62,17 +63,20 @@ Additions to `page.tsx` state:
 ## Core Functions (lib/ascii.ts)
 
 ### `extractVideoFrames(video, fps): Promise<HTMLCanvasElement[]>`
+
 - Calculate total frames: `duration * fps`
 - If > 200 frames, warn user and suggest lower FPS
 - Seek to each timestamp, draw to canvas, store canvas
 - Return array of canvases
 
 ### `framesToAscii(frames, width): Promise<string[]>`
+
 - Map each canvas through `canvasToAscii`
 - Process sequentially to avoid memory issues
 - Return array of ASCII strings
 
 ### `generateAnimatedReactComponent(frames, fps, componentName): string`
+
 - Escape backticks in each frame
 - Generate component with `useState` for current frame index
 - `useEffect` with `setInterval` at `1000/fps` ms

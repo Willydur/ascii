@@ -1,4 +1,4 @@
-export const ASCII_CHARS = '@%#*+=-:. ';
+export const ASCII_CHARS = "@%#*+=-:. ";
 
 export function getLuminance(r: number, g: number, b: number): number {
   return Math.round(0.299 * r + 0.587 * g + 0.114 * b);
@@ -9,11 +9,14 @@ export function pixelToChar(luminance: number, charSet: string): string {
   return charSet[Math.min(index, charSet.length - 1)];
 }
 
-export function canvasToAscii(canvas: HTMLCanvasElement, targetWidth: number): string {
-  if (targetWidth <= 0) throw new Error('targetWidth must be positive');
+export function canvasToAscii(
+  canvas: HTMLCanvasElement,
+  targetWidth: number,
+): string {
+  if (targetWidth <= 0) throw new Error("targetWidth must be positive");
 
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get canvas context");
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -22,7 +25,7 @@ export function canvasToAscii(canvas: HTMLCanvasElement, targetWidth: number): s
   const scaleX = canvas.width / targetWidth;
   const targetHeight = Math.round(canvas.height / scaleX);
 
-  let ascii = '';
+  let ascii = "";
   for (let y = 0; y < targetHeight; y++) {
     for (let x = 0; x < targetWidth; x++) {
       // Sample from source canvas
@@ -39,7 +42,7 @@ export function canvasToAscii(canvas: HTMLCanvasElement, targetWidth: number): s
       const lum = getLuminance(r, g, b);
       ascii += pixelToChar(lum, ASCII_CHARS);
     }
-    if (y < targetHeight - 1) ascii += '\n';
+    if (y < targetHeight - 1) ascii += "\n";
   }
 
   return ascii;
@@ -47,11 +50,11 @@ export function canvasToAscii(canvas: HTMLCanvasElement, targetWidth: number): s
 
 export async function imageToAscii(
   image: HTMLImageElement,
-  targetWidth: number
+  targetWidth: number,
 ): Promise<string> {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get canvas context");
 
   // Calculate dimensions maintaining aspect ratio
   const aspectRatio = image.naturalHeight / image.naturalWidth;
@@ -69,13 +72,13 @@ export async function imageToAscii(
 
 export function extractVideoFrame(
   video: HTMLVideoElement,
-  time: number = 0
+  time: number = 0,
 ): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     if (!ctx) {
-      reject(new Error('Could not get canvas context'));
+      reject(new Error("Could not get canvas context"));
       return;
     }
 
@@ -83,11 +86,11 @@ export function extractVideoFrame(
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
-      video.removeEventListener('seeked', handleSeeked);
+      video.removeEventListener("seeked", handleSeeked);
       resolve(canvas);
     };
 
-    video.addEventListener('seeked', handleSeeked);
+    video.addEventListener("seeked", handleSeeked);
     video.currentTime = time;
   });
 }
@@ -95,14 +98,14 @@ export function extractVideoFrame(
 export async function videoFrameToAscii(
   video: HTMLVideoElement,
   targetWidth: number,
-  time: number = 0
+  time: number = 0,
 ): Promise<string> {
   const canvas = await extractVideoFrame(video, time);
 
   // Resize canvas to target width
-  const resizedCanvas = document.createElement('canvas');
-  const ctx = resizedCanvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
+  const resizedCanvas = document.createElement("canvas");
+  const ctx = resizedCanvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get canvas context");
 
   const aspectRatio = canvas.height / canvas.width;
   const width = targetWidth;
@@ -115,9 +118,12 @@ export async function videoFrameToAscii(
   return canvasToAscii(resizedCanvas, width);
 }
 
-export function generateReactComponent(ascii: string, componentName: string): string {
+export function generateReactComponent(
+  ascii: string,
+  componentName: string,
+): string {
   // Escape backticks in ASCII
-  const escapedAscii = ascii.replace(/`/g, '\\`');
+  const escapedAscii = ascii.replace(/`/g, "\\`");
 
   return `export function ${componentName}() {
   const art = \`${escapedAscii}\`;
@@ -131,13 +137,13 @@ export function generateReactComponent(ascii: string, componentName: string): st
 
 export async function extractVideoFrames(
   video: HTMLVideoElement,
-  fps: number
+  fps: number,
 ): Promise<HTMLCanvasElement[]> {
   const totalFrames = Math.floor(video.duration * fps);
 
   if (totalFrames > 200) {
     throw new Error(
-      `Frame count (${totalFrames}) exceeds maximum (200). Try a lower FPS or shorter video.`
+      `Frame count (${totalFrames}) exceeds maximum (200). Try a lower FPS or shorter video.`,
     );
   }
 
@@ -156,7 +162,7 @@ export async function extractVideoFrames(
 export async function framesToAscii(
   frames: HTMLCanvasElement[],
   targetWidth: number,
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
 ): Promise<string[]> {
   const asciiFrames: string[] = [];
 
@@ -164,9 +170,9 @@ export async function framesToAscii(
     const frame = frames[i];
 
     // Resize canvas to target width (same logic as videoFrameToAscii)
-    const resizedCanvas = document.createElement('canvas');
-    const ctx = resizedCanvas.getContext('2d');
-    if (!ctx) throw new Error('Could not get canvas context');
+    const resizedCanvas = document.createElement("canvas");
+    const ctx = resizedCanvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get canvas context");
 
     const aspectRatio = frame.height / frame.width;
     const width = targetWidth;
@@ -192,14 +198,14 @@ export async function framesToAscii(
 export function generateAnimatedReactComponent(
   frames: string[],
   fps: number,
-  componentName: string
+  componentName: string,
 ): string {
   const interval = Math.round(1000 / fps);
-  const escapedFrames = frames.map((frame) => frame.replace(/`/g, '\\`'));
+  const escapedFrames = frames.map((frame) => frame.replace(/`/g, "\\`"));
 
   const framesArray = escapedFrames
     .map((frame) => `    \`${frame}\``)
-    .join(',\n');
+    .join(",\n");
 
   return `import { useState, useEffect } from "react";
 

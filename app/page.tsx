@@ -1,35 +1,48 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { DropZone } from '@/components/drop-zone';
-import { QualitySelector, QUALITY_WIDTHS, type FpsOption } from '@/components/quality-selector';
-import { ExportPanel } from '@/components/export-panel';
-import { AsciiRenderer } from '@/components/ascii-renderer';
-import { VideoAsciiPlayer } from '@/components/video-ascii-player';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { imageToAscii, generateReactComponent, extractVideoFrames, framesToAscii, generateAnimatedReactComponent } from '@/lib/ascii';
+import { useState, useEffect, useCallback } from "react";
+import { DropZone } from "@/components/drop-zone";
+import {
+  QualitySelector,
+  QUALITY_WIDTHS,
+  type FpsOption,
+} from "@/components/quality-selector";
+import { ExportPanel } from "@/components/export-panel";
+import { AsciiRenderer } from "@/components/ascii-renderer";
+import { VideoAsciiPlayer } from "@/components/video-ascii-player";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  imageToAscii,
+  generateReactComponent,
+  extractVideoFrames,
+  framesToAscii,
+  generateAnimatedReactComponent,
+} from "@/lib/ascii";
 
-type Quality = 's' | 'm' | 'l';
+type Quality = "s" | "m" | "l";
 
 export default function Page() {
   const [file, setFile] = useState<File | null>(null);
-  const [dataUrl, setDataUrl] = useState<string>('');
-  const [ascii, setAscii] = useState<string>('');
-  const [quality, setQuality] = useState<Quality>('m');
+  const [dataUrl, setDataUrl] = useState<string>("");
+  const [ascii, setAscii] = useState<string>("");
+  const [quality, setQuality] = useState<Quality>("m");
   const [isVideo, setIsVideo] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   // Video animation state
   const [fps, setFps] = useState<FpsOption>(2);
   const [asciiFrames, setAsciiFrames] = useState<string[]>([]);
   const [isProcessingFrames, setIsProcessingFrames] = useState(false);
-  const [processingProgress, setProcessingProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [processingProgress, setProcessingProgress] = useState<{
+    current: number;
+    total: number;
+  }>({ current: 0, total: 0 });
 
   const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
-    setIsVideo(selectedFile.type.startsWith('video/'));
-    setError('');
+    setIsVideo(selectedFile.type.startsWith("video/"));
+    setError("");
     // Clear video animation state when file changes
     setAsciiFrames([]);
     setFps(2);
@@ -47,17 +60,17 @@ export default function Page() {
 
     const process = async () => {
       setIsProcessing(true);
-      setError('');
+      setError("");
 
       try {
         if (isVideo) {
-          const video = document.createElement('video');
+          const video = document.createElement("video");
           video.src = dataUrl;
-          video.crossOrigin = 'anonymous';
+          video.crossOrigin = "anonymous";
 
           await new Promise<void>((resolve, reject) => {
             video.onloadedmetadata = () => resolve();
-            video.onerror = () => reject(new Error('Failed to load video'));
+            video.onerror = () => reject(new Error("Failed to load video"));
           });
 
           // Calculate total frames
@@ -65,7 +78,7 @@ export default function Page() {
 
           if (totalFrames > 200) {
             throw new Error(
-              `Frame count (${totalFrames}) exceeds maximum (200). Try a lower FPS or shorter video.`
+              `Frame count (${totalFrames}) exceeds maximum (200). Try a lower FPS or shorter video.`,
             );
           }
 
@@ -80,26 +93,26 @@ export default function Page() {
             QUALITY_WIDTHS[quality],
             (current, total) => {
               setProcessingProgress({ current, total });
-            }
+            },
           );
 
           setAsciiFrames(asciiFramesResult);
-          setAscii(asciiFramesResult[0] || '');
+          setAscii(asciiFramesResult[0] || "");
         } else {
           const img = new Image();
           img.src = dataUrl;
 
           await new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
-            img.onerror = () => reject(new Error('Failed to load image'));
+            img.onerror = () => reject(new Error("Failed to load image"));
           });
 
           const result = await imageToAscii(img, QUALITY_WIDTHS[quality]);
           setAscii(result);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Processing failed');
-        setAscii('');
+        setError(err instanceof Error ? err.message : "Processing failed");
+        setAscii("");
         setAsciiFrames([]);
       } finally {
         setIsProcessing(false);
@@ -111,13 +124,14 @@ export default function Page() {
   }, [dataUrl, quality, isVideo, fps]);
 
   const componentName = file
-    ? file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9]/g, '') + 'Ascii'
-    : 'AsciiArt';
+    ? file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "") + "Ascii"
+    : "AsciiArt";
 
   // Use animated component generator for videos, static for images
-  const exportCode = isVideo && asciiFrames.length > 0
-    ? generateAnimatedReactComponent(asciiFrames, fps, componentName)
-    : generateReactComponent(ascii, componentName);
+  const exportCode =
+    isVideo && asciiFrames.length > 0
+      ? generateAnimatedReactComponent(asciiFrames, fps, componentName)
+      : generateReactComponent(ascii, componentName);
 
   return (
     <div className="min-h-screen p-8 max-w-6xl mx-auto space-y-8">
@@ -145,8 +159,8 @@ export default function Page() {
                 <button
                   onClick={() => {
                     setFile(null);
-                    setDataUrl('');
-                    setAscii('');
+                    setDataUrl("");
+                    setAscii("");
                     setAsciiFrames([]);
                     setFps(2);
                     setProcessingProgress({ current: 0, total: 0 });
@@ -175,16 +189,17 @@ export default function Page() {
                         <div
                           className="bg-primary h-full transition-all duration-300"
                           style={{
-                            width: `${processingProgress.total > 0 ? (processingProgress.current / processingProgress.total) * 100 : 0}%`
+                            width: `${processingProgress.total > 0 ? (processingProgress.current / processingProgress.total) * 100 : 0}%`,
                           }}
                         />
                       </div>
                       <p className="text-sm">
-                        {processingProgress.current} / {processingProgress.total} frames
+                        {processingProgress.current} /{" "}
+                        {processingProgress.total} frames
                       </p>
                     </div>
                   ) : (
-                    'Processing...'
+                    "Processing..."
                   )}
                 </div>
               )}

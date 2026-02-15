@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
-type Quality = 's' | 'm' | 'l';
+type Quality = "s" | "m" | "l";
 export type FpsOption = 1 | 2 | 5 | 10;
 
 interface QualitySelectorProps {
@@ -15,9 +15,9 @@ interface QualitySelectorProps {
 }
 
 const QUALITY_OPTIONS: { value: Quality; label: string; width: number }[] = [
-  { value: 's', label: 'S', width: 50 },
-  { value: 'm', label: 'M', width: 100 },
-  { value: 'l', label: 'L', width: 150 },
+  { value: "s", label: "S", width: 50 },
+  { value: "m", label: "M", width: 100 },
+  { value: "l", label: "L", width: 150 },
 ];
 
 const FPS_OPTIONS: FpsOption[] = [1, 2, 5, 10];
@@ -39,14 +39,16 @@ export function QualitySelector({
               key={option.value}
               onClick={() => onChange(option.value)}
               className={cn(
-                'px-4 py-2 text-sm font-medium transition-colors',
+                "px-4 py-2 text-sm font-medium transition-colors",
                 value === option.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background hover:bg-muted'
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background hover:bg-muted",
               )}
             >
               {option.label}
-              <span className="ml-1 text-xs opacity-60">(~{option.width}px)</span>
+              <span className="ml-1 text-xs opacity-60">
+                (~{option.width}px)
+              </span>
             </button>
           ))}
         </div>
@@ -61,10 +63,10 @@ export function QualitySelector({
                 key={option}
                 onClick={() => onFpsChange(option)}
                 className={cn(
-                  'px-4 py-2 text-sm font-medium transition-colors',
+                  "px-4 py-2 text-sm font-medium transition-colors",
                   fps === option
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-background hover:bg-muted'
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-muted",
                 )}
               >
                 {option}

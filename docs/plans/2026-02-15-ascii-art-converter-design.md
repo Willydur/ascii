@@ -37,13 +37,13 @@ A client-side web application that converts images and video frames into ASCII a
 
 ## Components
 
-| Component | Props | Purpose |
-|-----------|-------|---------|
-| `DropZone` | `onFileSelect: (file: File) => void` | Drag-and-drop + click to upload. Validates file type (image/*, video/*). Shows file name once selected. |
-| `PreviewArea` | `original: string` (data URL), `ascii: string` (ASCII art), `isVideo: boolean` | Side-by-side display. Left shows `<img>` or `<video>`, right shows `<pre>` with ASCII. |
-| `QualitySelector` | `value: 's' \| 'm' \| 'l'`, `onChange: (q) => void` | Three buttons/segmented control. Labels: "S", "M", "L". |
-| `ExportPanel` | `ascii: string, fileName: string` | Shows generated React code. Copy button + download as `.tsx` file. |
-| `AsciiRenderer` | `content: string, className?: string` | Renders `<pre>` with monospace font. Handles whitespace preservation. |
+| Component         | Props                                                                          | Purpose                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `DropZone`        | `onFileSelect: (file: File) => void`                                           | Drag-and-drop + click to upload. Validates file type (image/_, video/_). Shows file name once selected. |
+| `PreviewArea`     | `original: string` (data URL), `ascii: string` (ASCII art), `isVideo: boolean` | Side-by-side display. Left shows `<img>` or `<video>`, right shows `<pre>` with ASCII.                  |
+| `QualitySelector` | `value: 's' \| 'm' \| 'l'`, `onChange: (q) => void`                            | Three buttons/segmented control. Labels: "S", "M", "L".                                                 |
+| `ExportPanel`     | `ascii: string, fileName: string`                                              | Shows generated React code. Copy button + download as `.tsx` file.                                      |
+| `AsciiRenderer`   | `content: string, className?: string`                                          | Renders `<pre>` with monospace font. Handles whitespace preservation.                                   |
 
 ## Utility Functions (lib/ascii.ts)
 
@@ -67,6 +67,7 @@ A client-side web application that converts images and video frames into ASCII a
 ## State Management
 
 State lives in `page.tsx`:
+
 - `file: File | null`
 - `dataUrl: string` (for preview)
 - `ascii: string` (current output)
@@ -95,6 +96,7 @@ Processing happens in `useEffect` when `file` or `quality` changes.
 **Character set**: `@%#*+=-:. ` (10 levels from dark to light)
 
 **Quality mapping**:
+
 - S: 50 chars wide
 - M: 100 chars wide
 - L: 150 chars wide

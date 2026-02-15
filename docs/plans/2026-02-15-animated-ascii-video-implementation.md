@@ -13,34 +13,38 @@
 ## Task 1: Add Video Frame Extraction Function
 
 **Files:**
+
 - Modify: `lib/ascii.ts:130-131` (append after generateReactComponent)
 - Test: `lib/ascii.test.ts` (add new test)
 
 **Step 1: Write the failing test**
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from "vitest";
 
-describe('extractVideoFrames', () => {
-  it('should extract frames at specified fps', async () => {
+describe("extractVideoFrames", () => {
+  it("should extract frames at specified fps", async () => {
     const mockVideo = {
       duration: 2,
       videoWidth: 100,
       videoHeight: 100,
       currentTime: 0,
       addEventListener: vi.fn((event, handler) => {
-        if (event === 'seeked') {
+        if (event === "seeked") {
           setTimeout(() => handler(), 0);
         }
       }),
       removeEventListener: vi.fn(),
     };
 
-    const frames = await extractVideoFrames(mockVideo as unknown as HTMLVideoElement, 2);
+    const frames = await extractVideoFrames(
+      mockVideo as unknown as HTMLVideoElement,
+      2,
+    );
     expect(frames).toHaveLength(4); // 2 seconds * 2 fps
   });
 
-  it('should throw error if frame count exceeds 200', async () => {
+  it("should throw error if frame count exceeds 200", async () => {
     const mockVideo = {
       duration: 100,
       videoWidth: 100,
@@ -48,8 +52,8 @@ describe('extractVideoFrames', () => {
     };
 
     await expect(
-      extractVideoFrames(mockVideo as unknown as HTMLVideoElement, 5)
-    ).rejects.toThrow('Frame count exceeds maximum');
+      extractVideoFrames(mockVideo as unknown as HTMLVideoElement, 5),
+    ).rejects.toThrow("Frame count exceeds maximum");
   });
 });
 ```
@@ -64,7 +68,7 @@ Expected: FAIL with "extractVideoFrames is not defined"
 ```typescript
 export async function extractVideoFrames(
   video: HTMLVideoElement,
-  fps: number
+  fps: number,
 ): Promise<HTMLCanvasElement[]> {
   const totalFrames = Math.floor(video.duration * fps);
   const MAX_FRAMES = 200;
@@ -72,7 +76,7 @@ export async function extractVideoFrames(
   if (totalFrames > MAX_FRAMES) {
     throw new Error(
       `Frame count (${totalFrames}) exceeds maximum (${MAX_FRAMES}). ` +
-      `Try a lower FPS or shorter video.`
+        `Try a lower FPS or shorter video.`,
     );
   }
 
@@ -105,20 +109,21 @@ git commit -m "feat: add extractVideoFrames function with max frame limit"
 ## Task 2: Add Batch Frame to ASCII Conversion
 
 **Files:**
+
 - Modify: `lib/ascii.ts` (append after extractVideoFrames)
 - Test: `lib/ascii.test.ts`
 
 **Step 1: Write the failing test**
 
 ```typescript
-describe('framesToAscii', () => {
-  it('should convert multiple canvases to ASCII', async () => {
+describe("framesToAscii", () => {
+  it("should convert multiple canvases to ASCII", async () => {
     // Create a simple mock canvas
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 10;
     canvas.height = 10;
-    const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = 'black';
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "black";
     ctx.fillRect(0, 0, 10, 10);
 
     const frames = [canvas, canvas];
@@ -145,7 +150,7 @@ Expected: FAIL with "framesToAscii is not defined"
 export async function framesToAscii(
   frames: HTMLCanvasElement[],
   targetWidth: number,
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
 ): Promise<string[]> {
   const asciiFrames: string[] = [];
 
@@ -153,8 +158,8 @@ export async function framesToAscii(
     const canvas = frames[i];
 
     // Resize to target width
-    const resizedCanvas = document.createElement('canvas');
-    const ctx = resizedCanvas.getContext('2d')!;
+    const resizedCanvas = document.createElement("canvas");
+    const ctx = resizedCanvas.getContext("2d")!;
 
     const aspectRatio = canvas.height / canvas.width;
     const width = targetWidth;
@@ -191,35 +196,36 @@ git commit -m "feat: add framesToAscii with progress callback"
 ## Task 3: Add Animated Component Generator
 
 **Files:**
+
 - Modify: `lib/ascii.ts` (append after framesToAscii)
 - Test: `lib/ascii.test.ts`
 
 **Step 1: Write the failing test**
 
 ```typescript
-describe('generateAnimatedReactComponent', () => {
-  it('should generate component with frames and fps', () => {
-    const frames = ['frame1', 'frame2', 'frame3'];
-    const result = generateAnimatedReactComponent(frames, 2, 'TestVideo');
+describe("generateAnimatedReactComponent", () => {
+  it("should generate component with frames and fps", () => {
+    const frames = ["frame1", "frame2", "frame3"];
+    const result = generateAnimatedReactComponent(frames, 2, "TestVideo");
 
-    expect(result).toContain('export function TestVideo()');
-    expect(result).toContain('const frames = [');
-    expect(result).toContain('frame1');
-    expect(result).toContain('frame2');
-    expect(result).toContain('frame3');
-    expect(result).toContain('useState(0)');
-    expect(result).toContain('useEffect');
-    expect(result).toContain('setInterval');
-    expect(result).toContain('500'); // 1000 / 2fps = 500ms
-    expect(result).toContain('(f + 1) % frames.length');
+    expect(result).toContain("export function TestVideo()");
+    expect(result).toContain("const frames = [");
+    expect(result).toContain("frame1");
+    expect(result).toContain("frame2");
+    expect(result).toContain("frame3");
+    expect(result).toContain("useState(0)");
+    expect(result).toContain("useEffect");
+    expect(result).toContain("setInterval");
+    expect(result).toContain("500"); // 1000 / 2fps = 500ms
+    expect(result).toContain("(f + 1) % frames.length");
   });
 
-  it('should escape backticks in frames', () => {
-    const frames = ['frame`with`backticks'];
-    const result = generateAnimatedReactComponent(frames, 1, 'Test');
+  it("should escape backticks in frames", () => {
+    const frames = ["frame`with`backticks"];
+    const result = generateAnimatedReactComponent(frames, 1, "Test");
 
-    expect(result).toContain('frame\\`with\\`backticks');
-    expect(result).not.toContain('frame`with`backticks');
+    expect(result).toContain("frame\\`with\\`backticks");
+    expect(result).not.toContain("frame`with`backticks");
   });
 });
 ```
@@ -235,11 +241,11 @@ Expected: FAIL with "generateAnimatedReactComponent is not defined"
 export function generateAnimatedReactComponent(
   frames: string[],
   fps: number,
-  componentName: string
+  componentName: string,
 ): string {
   const intervalMs = Math.round(1000 / fps);
-  const escapedFrames = frames.map(f => f.replace(/`/g, '\\`'));
-  const framesString = escapedFrames.map(f => `    \`${f}\``).join(',\n');
+  const escapedFrames = frames.map((f) => f.replace(/`/g, "\\`"));
+  const framesString = escapedFrames.map((f) => `    \`${f}\``).join(",\n");
 
   return `import { useState, useEffect } from 'react';
 
@@ -284,6 +290,7 @@ git commit -m "feat: add generateAnimatedReactComponent for video export"
 ## Task 4: Extend QualitySelector with FPS Control
 
 **Files:**
+
 - Modify: `components/quality-selector.tsx`
 
 **Step 1: Read current implementation**
@@ -384,6 +391,7 @@ git commit -m "feat: extend QualitySelector with FPS control for video"
 ## Task 5: Create VideoAsciiPlayer Component
 
 **Files:**
+
 - Create: `components/video-ascii-player.tsx`
 
 **Step 1: Create component file**
@@ -465,6 +473,7 @@ git commit -m "feat: add VideoAsciiPlayer component for synchronized preview"
 ## Task 6: Update Page with Video Animation Support
 
 **Files:**
+
 - Modify: `app/page.tsx`
 
 **Step 1: Read current page.tsx**
@@ -474,22 +483,27 @@ Read: `app/page.tsx`
 **Step 2: Update imports and state**
 
 Add imports:
+
 ```typescript
-import { VideoAsciiPlayer } from '@/components/video-ascii-player';
-import { FPS_OPTIONS, type FpsOption } from '@/components/quality-selector';
+import { VideoAsciiPlayer } from "@/components/video-ascii-player";
+import { FPS_OPTIONS, type FpsOption } from "@/components/quality-selector";
 import {
   extractVideoFrames,
   framesToAscii,
   generateAnimatedReactComponent,
-} from '@/lib/ascii';
+} from "@/lib/ascii";
 ```
 
 Add state:
+
 ```typescript
 const [fps, setFps] = useState<FpsOption>(2);
 const [asciiFrames, setAsciiFrames] = useState<string[]>([]);
 const [isProcessingFrames, setIsProcessingFrames] = useState(false);
-const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0 });
+const [processingProgress, setProcessingProgress] = useState({
+  current: 0,
+  total: 0,
+});
 ```
 
 **Step 3: Update video processing effect**
@@ -498,13 +512,13 @@ Replace the video processing section in useEffect with:
 
 ```typescript
 if (isVideo) {
-  const video = document.createElement('video');
+  const video = document.createElement("video");
   video.src = dataUrl;
-  video.crossOrigin = 'anonymous';
+  video.crossOrigin = "anonymous";
 
   await new Promise<void>((resolve, reject) => {
     video.onloadedmetadata = () => resolve();
-    video.onerror = () => reject(new Error('Failed to load video'));
+    video.onerror = () => reject(new Error("Failed to load video"));
   });
 
   // Check frame count
@@ -512,7 +526,7 @@ if (isVideo) {
   if (totalFrames > 200) {
     throw new Error(
       `Video would generate ${totalFrames} frames (max 200). ` +
-      `Try a lower FPS or shorter video.`
+        `Try a lower FPS or shorter video.`,
     );
   }
 
@@ -525,7 +539,7 @@ if (isVideo) {
     const asciiResult = await framesToAscii(
       frameCanvases,
       QUALITY_WIDTHS[quality],
-      (current, total) => setProcessingProgress({ current, total })
+      (current, total) => setProcessingProgress({ current, total }),
     );
     setAsciiFrames(asciiResult);
     setAscii(asciiResult[0]); // Show first frame in single view
@@ -538,6 +552,7 @@ if (isVideo) {
 **Step 4: Update QualitySelector usage**
 
 Replace QualitySelector with:
+
 ```typescript
 <QualitySelector
   quality={quality}
@@ -594,15 +609,18 @@ Replace the preview grid with conditional rendering:
 **Step 6: Update export code generation**
 
 Replace exportCode with:
+
 ```typescript
-const exportCode = isVideo && asciiFrames.length > 0
-  ? generateAnimatedReactComponent(asciiFrames, fps, componentName)
-  : generateReactComponent(ascii, componentName);
+const exportCode =
+  isVideo && asciiFrames.length > 0
+    ? generateAnimatedReactComponent(asciiFrames, fps, componentName)
+    : generateReactComponent(ascii, componentName);
 ```
 
 **Step 7: Clear frames on file change**
 
 Add to handleFileSelect:
+
 ```typescript
 setAsciiFrames([]);
 setFps(2);
@@ -625,6 +643,7 @@ git commit -m "feat: integrate animated video ASCII into main page"
 ## Task 7: Add Tests for VideoAsciiPlayer
 
 **Files:**
+
 - Create: `components/video-ascii-player.test.tsx`
 
 **Step 1: Create test file**
@@ -714,6 +733,7 @@ git commit -m "feat: complete animated ASCII video implementation" || echo "No c
 ## Summary
 
 This implementation adds:
+
 1. `extractVideoFrames()` - extracts frames from video at specified FPS
 2. `framesToAscii()` - batch converts frames with progress callback
 3. `generateAnimatedReactComponent()` - generates React component with frame animation
