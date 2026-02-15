@@ -66,3 +66,51 @@ export async function imageToAscii(
 
   return canvasToAscii(canvas, width);
 }
+
+export function extractVideoFrame(
+  video: HTMLVideoElement,
+  time: number = 0
+): Promise<HTMLCanvasElement> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+
+    const handleSeeked = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      video.removeEventListener('seeked', handleSeeked);
+      resolve(canvas);
+    };
+
+    video.addEventListener('seeked', handleSeeked);
+    video.currentTime = time;
+  });
+}
+
+export async function videoFrameToAscii(
+  video: HTMLVideoElement,
+  targetWidth: number,
+  time: number = 0
+): Promise<string> {
+  const canvas = await extractVideoFrame(video, time);
+
+  // Resize canvas to target width
+  const resizedCanvas = document.createElement('canvas');
+  const ctx = resizedCanvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
+
+  const aspectRatio = canvas.height / canvas.width;
+  const width = targetWidth;
+  const height = Math.round(width * aspectRatio * 0.5);
+
+  resizedCanvas.width = width;
+  resizedCanvas.height = height;
+  ctx.drawImage(canvas, 0, 0, width, height);
+
+  return canvasToAscii(resizedCanvas, width);
+}
